@@ -9,10 +9,6 @@ from pymongo.errors import PyMongoError
 from database import complaints_collection, check_database
 
 
-# --------------------------------------------------
-# CONFIGURATION
-# --------------------------------------------------
-
 API_URL = "http://127.0.0.1:8000"
 
 STATUS_OPTIONS = [
@@ -28,10 +24,6 @@ st.set_page_config(
     layout="wide",
 )
 
-
-# --------------------------------------------------
-# DATABASE FUNCTIONS
-# --------------------------------------------------
 
 def save_complaint(title, description, analysis):
     """Save a complaint and its ML analysis to MongoDB."""
@@ -70,10 +62,6 @@ def update_complaint_status(complaint_id, new_status):
 
     return result.matched_count > 0
 
-
-# --------------------------------------------------
-# FASTAPI / ML FUNCTIONS
-# --------------------------------------------------
 
 def analyze_complaint(title, description):
     """Call the existing CampusLoop FastAPI ML service."""
@@ -190,10 +178,6 @@ def show_analysis(result):
         st.json(result)
 
 
-# --------------------------------------------------
-# SIDEBAR / NAVIGATION
-# --------------------------------------------------
-
 with st.sidebar:
     st.title("🎓 CampusLoop")
     st.caption("Your Campus. Your Voice.")
@@ -209,7 +193,6 @@ with st.sidebar:
 
     st.divider()
 
-    # FastAPI health check
     try:
         response = requests.get(
             f"{API_URL}/health",
@@ -224,7 +207,7 @@ with st.sidebar:
     except requests.RequestException:
         st.error("ML Service Offline")
 
-    # MongoDB health check
+
     try:
         check_database()
         st.success("MongoDB Connected")
@@ -235,9 +218,7 @@ with st.sidebar:
     st.caption("CampusLoop prototype")
 
 
-# --------------------------------------------------
-# STUDENT DASHBOARD
-# --------------------------------------------------
+
 
 if page == "Student Dashboard":
 
@@ -247,13 +228,9 @@ if page == "Student Dashboard":
         "Submit campus complaints and view their AI assessments."
     )
 
-    st.info(
-        "Prototype notice: authentication is not implemented yet. "
-        "Complaints submitted through this app are stored in MongoDB "
-        "and visible on the shared Admin Dashboard."
-    )
+   
 
-    # Load complaints from MongoDB
+   
     try:
         complaints = get_complaints()
 
@@ -264,7 +241,6 @@ if page == "Student Dashboard":
         )
         complaints = []
 
-    # Dashboard metrics
     c1, c2, c3 = st.columns(3)
 
     c1.metric(
@@ -290,7 +266,7 @@ if page == "Student Dashboard":
 
     st.divider()
 
-    # Complaint submission form
+
     st.subheader("📝 Submit a complaint")
 
     with st.form("student_complaint_form"):
@@ -328,7 +304,6 @@ if page == "Student Dashboard":
         else:
 
             try:
-                # Step 1: Analyze with the real ML service
                 with st.spinner(
                     "Analyzing complaint with CampusLoop AI..."
                 ):
@@ -337,7 +312,6 @@ if page == "Student Dashboard":
                         description.strip(),
                     )
 
-                # Step 2: Save complaint and analysis to MongoDB
                 with st.spinner("Saving complaint to MongoDB..."):
                     complaint = save_complaint(
                         title=title.strip(),
@@ -367,7 +341,6 @@ if page == "Student Dashboard":
 
     st.divider()
 
-    # Complaint history
     st.subheader("📋 Submitted complaints")
 
     try:
@@ -423,9 +396,6 @@ if page == "Student Dashboard":
         st.error("Could not retrieve complaint history from MongoDB.")
 
 
-# --------------------------------------------------
-# ADMIN DASHBOARD
-# --------------------------------------------------
 
 elif page == "Admin Dashboard":
 
@@ -436,11 +406,7 @@ elif page == "Admin Dashboard":
         "and update complaint statuses."
     )
 
-    st.warning(
-        "Demo mode: this page has no admin authentication. "
-        "Anyone who can open this app may access its admin features. "
-        "Do not use it for real student data until access controls exist."
-    )
+    
 
     try:
         complaints = get_complaints()
@@ -449,7 +415,7 @@ elif page == "Admin Dashboard":
         st.error("Could not load complaints from MongoDB.")
         complaints = []
 
-    # Admin metrics
+    
     total_count = len(complaints)
 
     pending_count = sum(
@@ -489,7 +455,6 @@ elif page == "Admin Dashboard":
 
     else:
 
-        # Filters
         categories = sorted({
             complaint.get("analysis", {}).get(
                 "category", "Other"
@@ -521,7 +486,7 @@ elif page == "Admin Dashboard":
             ["All"] + STATUS_OPTIONS,
         )
 
-        # Apply filters
+        
         filtered = []
 
         for complaint in complaints:
@@ -556,7 +521,6 @@ elif page == "Admin Dashboard":
             f"Showing {len(filtered)} of {len(complaints)} complaints"
         )
 
-        # Complaint records
         for complaint in filtered:
 
             complaint_id = complaint.get(
@@ -625,7 +589,7 @@ elif page == "Admin Dashboard":
                     "Pending",
                 )
 
-                # Handle any older unexpected status values
+                
                 if current_status not in STATUS_OPTIONS:
                     current_status = "Pending"
 
@@ -663,9 +627,6 @@ elif page == "Admin Dashboard":
                     st.json(analysis)
 
 
-# --------------------------------------------------
-# AI MODEL TESTER
-# --------------------------------------------------
 
 else:
 
@@ -770,9 +731,7 @@ else:
                 )
 
 
-# --------------------------------------------------
-# FOOTER
-# --------------------------------------------------
+
 
 st.divider()
 
